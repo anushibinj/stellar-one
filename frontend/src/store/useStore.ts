@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Template, GeneratedItemResponse } from '../types';
+import type { Template, GeneratedItemResponse } from '../types';
 
 interface AppState {
   selectedTemplate: Template | null;

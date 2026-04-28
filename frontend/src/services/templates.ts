@@ -1,5 +1,5 @@
 import api from './api';
-import { Template, GeneratedItemResponse, CreateTemplateDTO } from '../types';
+import type { Template, GeneratedItemResponse, CreateTemplateDTO } from '../types';
 
 export const getTemplates = async (): Promise<Template[]> => {
   const { data } = await api.get('/templates');
