@@ -75,6 +75,11 @@ uv run uvicorn main:app --reload
 
 ## 📡 API Endpoints
 
+### Documentation
+*   **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
+*   **ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
+*   **OpenAPI Spec:** [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
+
 ### Templates
 *   `POST /templates`: Create a new generation template (e.g., "Dad Jokes").
 *   `GET /templates`: List all available templates.

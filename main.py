@@ -8,7 +8,14 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
-app = FastAPI(title="Stellar-One Semantic Generation Engine")
+app = FastAPI(
+    title="Stellar-One Semantic Generation Engine",
+    description="A semantic uniqueness generation engine using FastAPI, pgvector, and LangGraph.",
+    version="1.0.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 app.include_router(api_router)
 

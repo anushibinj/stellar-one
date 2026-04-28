@@ -10,7 +10,7 @@ from app.schemas.schemas import TemplateCreate, TemplateRead, GenerationResponse
 from app.graph.stellar_graph import stellar_graph
 from app.config import settings
 
-router = APIRouter()
+router = APIRouter(tags=["Templates & Generation"])
 
 @router.post("/templates", response_model=TemplateRead)
 async def create_template(data: TemplateCreate, db: AsyncSession = Depends(get_db)):
