@@ -23,3 +23,11 @@ class GenerationResponse(BaseModel):
     content: str
     attempts: int
     similar_items: List[SimilarItem]
+
+class ItemRead(BaseModel):
+    id: UUID
+    template_id: UUID
+    content: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
