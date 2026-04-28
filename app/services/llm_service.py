@@ -1,16 +1,19 @@
 import logging
+import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.config import settings
+from dotenv import load_dotenv
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
         self.llm = ChatOpenAI(
-            model=settings.LLM_MODEL,
-            api_key=settings.OPENAI_API_KEY,
-            temperature=0.7
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),  # fallback if not set
+            base_url=os.getenv("OPENAI_BASE_URL"),
+            api_key=os.getenv("OPENAI_API_KEY"),
         )
 
     async def generate_text(self, system_prompt: str, user_prompt: str) -> str:
