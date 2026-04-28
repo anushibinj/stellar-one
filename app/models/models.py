@@ -25,7 +25,7 @@ class Item(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     template_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("templates.id"), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[Vector] = mapped_column(Vector(1536), nullable=False)
+    embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     
     template: Mapped["Template"] = relationship("Template", back_populates="items")
