@@ -25,6 +25,28 @@ async def list_templates(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Template))
     return result.scalars().all()
 
+@router.put("/templates/{template_id}", response_model=TemplateRead, summary="Update a template", description="Update the name and system prompt of an existing template.")
+async def update_template(template_id: uuid.UUID, data: TemplateCreate, db: AsyncSession = Depends(get_db)):
+    template = await db.get(Template, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    template.name = data.name
+    template.system_prompt = data.system_prompt
+    await db.commit()
+    await db.refresh(template)
+    return template
+
+@router.delete("/templates/{template_id}", summary="Delete a template", description="Delete a template and all its associated generated items.")
+async def delete_template(template_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    template = await db.get(Template, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    await db.delete(template)
+    await db.commit()
+    return {"message": "Template deleted successfully"}
+
 @router.post("/templates/{template_id}/generate", response_model=GenerationResponse, summary="Generate unique item", description="Trigger the semantic generation workflow to create a new item that is unique relative to existing items in this template.")
 async def generate_item(template_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     # Fetch template

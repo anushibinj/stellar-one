@@ -95,8 +95,14 @@ uv run uvicorn main:app --reload
 *   **OpenAPI Spec:** [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
 
 ### Templates
-*   `POST /templates`: Create a new generation template (e.g., "Dad Jokes").
+*   `POST /templates`: Create a new generation template.
 *   `GET /templates`: List all available templates.
+*   `PUT /templates/{id}`: Update an existing template's name or prompt.
+*   `DELETE /templates/{id}`: Delete a template and its history.
+
+### Items (History)
+*   `GET /items`: List all generated items across all templates.
+*   `GET /templates/{id}/items`: List all items for a specific template.
 
 ### Generation
 *   `POST /templates/{id}/generate`: Trigger the semantic generation workflow.
