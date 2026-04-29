@@ -10,9 +10,9 @@ export default function SimilarityList() {
 
   if (generationLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24 w-full" />
+          <Skeleton key={i} className="h-20 w-full" />
         ))}
       </div>
     );
@@ -20,7 +20,7 @@ export default function SimilarityList() {
 
   if (!generationResult || generationResult.similar_items.length === 0) {
     return (
-      <div className="text-center py-10 border rounded-lg bg-muted/10 text-muted-foreground text-sm italic">
+      <div className="text-center py-6 border rounded-md bg-muted/10 text-muted-foreground text-xs italic">
         No similar items found in database.
       </div>
     );
@@ -30,37 +30,37 @@ export default function SimilarityList() {
     if (score < 0.2) return { 
       color: 'border-red-500 bg-red-50 text-red-700', 
       label: 'Too Similar', 
-      icon: <AlertCircle className="h-4 w-4" /> 
+      icon: <AlertCircle className="h-3 w-3" /> 
     };
     if (score < 0.4) return { 
       color: 'border-yellow-500 bg-yellow-50 text-yellow-700', 
       label: 'Borderline', 
-      icon: <AlertTriangle className="h-4 w-4" /> 
+      icon: <AlertTriangle className="h-3 w-3" /> 
     };
     return { 
       color: 'border-green-500 bg-green-50 text-green-700', 
       label: 'Good', 
-      icon: <CheckCircle2 className="h-4 w-4" /> 
+      icon: <CheckCircle2 className="h-3 w-3" /> 
     };
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {generationResult.similar_items.map((item, index) => {
         const indicator = getIndicator(item.score);
         return (
-          <Card key={index} className={cn("border-l-4 transition-all hover:translate-x-1", indicator.color)}>
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <Badge variant="outline" className={cn("flex items-center gap-1", indicator.color)}>
+          <Card key={index} className={cn("border-l-4 transition-all hover:translate-x-1 shadow-sm", indicator.color)}>
+            <CardContent className="p-3">
+              <div className="flex justify-between items-start mb-1.5">
+                <Badge variant="outline" className={cn("flex items-center gap-1 text-[10px] px-1.5 py-0 h-5", indicator.color)}>
                   {indicator.icon}
                   {indicator.label}
                 </Badge>
-                <span className="text-xs font-mono font-bold">
+                <span className="text-[10px] font-mono font-bold">
                   Score: {item.score.toFixed(4)}
                 </span>
               </div>
-              <p className="text-sm line-clamp-3 leading-relaxed">
+              <p className="text-xs line-clamp-3 leading-relaxed">
                 {item.content}
               </p>
             </CardContent>

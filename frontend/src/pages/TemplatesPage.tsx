@@ -16,38 +16,38 @@ export default function TemplatesPage() {
   });
 
   return (
-    <div className="container py-10 max-w-screen-xl">
-      <div className="flex justify-between items-center mb-8">
+    <div className="container py-6 max-w-screen-xl">
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Templates</h1>
-          <p className="text-muted-foreground mt-1">Manage your semantic generation templates.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Templates</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage your semantic generation templates.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button size="sm" onClick={() => setIsModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create Template
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <LoadingSkeleton count={6} />
         </div>
       ) : isError ? (
-        <div className="text-center py-20 border rounded-lg bg-muted/50">
-          <p className="text-destructive">Error loading templates. Please try again.</p>
-          <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+        <div className="text-center py-10 border rounded-lg bg-muted/50">
+          <p className="text-sm text-destructive">Error loading templates. Please try again.</p>
+          <Button size="sm" variant="outline" className="mt-4" onClick={() => refetch()}>
             Retry
           </Button>
         </div>
       ) : templates?.length === 0 ? (
-        <div className="text-center py-20 border rounded-lg bg-muted/50">
-          <p className="text-muted-foreground">No templates found. Create your first one!</p>
-          <Button variant="outline" className="mt-4" onClick={() => setIsModalOpen(true)}>
+        <div className="text-center py-10 border rounded-lg bg-muted/50">
+          <p className="text-sm text-muted-foreground">No templates found. Create your first one!</p>
+          <Button size="sm" variant="outline" className="mt-4" onClick={() => setIsModalOpen(true)}>
             Create Template
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates?.map((template) => (
             <TemplateCard key={template.id} template={template} />
           ))}

@@ -57,19 +57,19 @@ export default function TemplateDetailPage() {
 
   if (isTemplateLoading) {
     return (
-      <div className="container py-10 max-w-screen-xl animate-pulse">
-        <div className="h-8 w-48 bg-muted rounded mb-4" />
-        <div className="h-10 w-full bg-muted rounded mb-8" />
-        <div className="h-[400px] w-full bg-muted rounded" />
+      <div className="container py-6 max-w-screen-xl animate-pulse">
+        <div className="h-6 w-48 bg-muted rounded mb-3" />
+        <div className="h-8 w-full bg-muted rounded mb-6" />
+        <div className="h-[300px] w-full bg-muted rounded" />
       </div>
     );
   }
 
   if (isError || !template) {
     return (
-      <div className="container py-10 max-w-screen-xl text-center">
-        <p className="text-destructive">Template not found.</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate('/')}>
+      <div className="container py-6 max-w-screen-xl text-center">
+        <p className="text-sm text-destructive">Template not found.</p>
+        <Button size="sm" variant="outline" className="mt-4" onClick={() => navigate('/')}>
           Back to Templates
         </Button>
       </div>
@@ -77,39 +77,39 @@ export default function TemplateDetailPage() {
   }
 
   return (
-    <div className="container py-10 max-w-screen-xl">
+    <div className="container py-6 max-w-screen-xl">
       <Button 
         variant="ghost" 
         size="sm" 
-        className="mb-6 -ml-2 text-muted-foreground"
+        className="mb-4 -ml-2 text-muted-foreground h-8 text-xs"
         onClick={() => navigate('/')}
       >
-        <ChevronLeft className="mr-1 h-4 w-4" />
+        <ChevronLeft className="mr-1 h-3 w-3" />
         Back to Templates
       </Button>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight">{template.name}</h1>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="secondary">Template ID: {template.id.slice(0, 8)}...</Badge>
-            <span className="text-sm text-muted-foreground">Created {new Date(template.created_at).toLocaleDateString()}</span>
+          <h1 className="text-2xl font-bold tracking-tight">{template.name}</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <Badge variant="secondary" className="text-xs">ID: {template.id.slice(0, 8)}...</Badge>
+            <span className="text-xs text-muted-foreground">Created {new Date(template.created_at).toLocaleDateString()}</span>
           </div>
         </div>
         <Button 
-          size="lg" 
+          size="sm" 
           onClick={() => generateMutation.mutate()} 
           disabled={generationLoading}
-          className="w-full md:w-auto shadow-lg shadow-primary/20"
+          className="w-full md:w-auto shadow-sm shadow-primary/20"
         >
           {generationLoading ? (
-            <span className="flex items-center">
-              <Sparkles className="mr-2 h-4 w-4 animate-spin" />
+            <span className="flex items-center text-xs">
+              <Sparkles className="mr-2 h-3 w-3 animate-spin" />
               Generating...
             </span>
           ) : (
-            <span className="flex items-center">
-              <Sparkles className="mr-2 h-4 w-4" />
+            <span className="flex items-center text-xs">
+              <Sparkles className="mr-2 h-3 w-3" />
               Generate Item
             </span>
           )}
@@ -119,45 +119,45 @@ export default function TemplateDetailPage() {
       <Collapsible
         open={isPromptOpen}
         onOpenChange={setIsPromptOpen}
-        className="mb-10 space-y-2 border rounded-lg p-4 bg-muted/30"
+        className="mb-6 space-y-1 border rounded-md p-3 bg-muted/30"
       >
         <div className="flex items-center justify-between space-x-4">
-          <h4 className="text-sm font-semibold flex items-center">
-            <Info className="mr-2 h-4 w-4" />
+          <h4 className="text-xs font-semibold flex items-center">
+            <Info className="mr-2 h-3 w-3" />
             System Prompt
           </h4>
           <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="h-6 text-xs px-2">
               {isPromptOpen ? 'Hide' : 'Show'}
             </Button>
           </CollapsibleTrigger>
         </div>
-        <CollapsibleContent className="text-sm text-muted-foreground leading-relaxed">
+        <CollapsibleContent className="text-xs text-muted-foreground leading-relaxed mt-2">
           {template.system_prompt}
         </CollapsibleContent>
       </Collapsible>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2 space-y-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
           <section>
-            <h2 className="text-2xl font-bold mb-6 flex items-center">
+            <h2 className="text-lg font-bold mb-3 flex items-center">
               Generated Result
             </h2>
             <GeneratedResultCard />
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-6 flex items-center">
-              <HistoryIcon className="mr-2 h-5 w-5" />
+            <h2 className="text-lg font-bold mb-3 flex items-center">
+              <HistoryIcon className="mr-2 h-4 w-4" />
               Generation History
             </h2>
             <HistoryList history={history || []} isLoading={isHistoryLoading} />
           </section>
         </div>
 
-        <div className="space-y-10">
+        <div className="space-y-6">
           <section>
-            <h2 className="text-2xl font-bold mb-6">Similarity Check</h2>
+            <h2 className="text-lg font-bold mb-3">Similarity Check</h2>
             <SimilarityList />
           </section>
         </div>
