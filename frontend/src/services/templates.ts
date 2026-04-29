@@ -7,8 +7,12 @@ export const getTemplates = async (): Promise<Template[]> => {
 };
 
 export const getTemplate = async (id: string): Promise<Template> => {
-  const { data } = await api.get(`/templates/${id}`);
-  return data;
+  const { data } = await api.get('/templates');
+  const template = data.find((t: Template) => t.id === id);
+  if (!template) {
+    throw new Error('Template not found');
+  }
+  return template;
 };
 
 export const createTemplate = async (template: CreateTemplateDTO): Promise<Template> => {
@@ -22,12 +26,8 @@ export const generateItem = async (templateId: string): Promise<GeneratedItemRes
 };
 
 export const getTemplateHistory = async (templateId: string): Promise<GeneratedItemResponse[]> => {
-  // Assuming there's a history endpoint, if not we'll handle it or mock it
-  // For now let's assume GET /templates/{id}/history exists or we just show the current generation
-  // The requirement says "Show previous generated items for this template"
-  // If the backend doesn't have it, I'll return an empty array for now or mock it.
   try {
-    const { data } = await api.get(`/templates/${templateId}/history`);
+    const { data } = await api.get(`/templates/${templateId}/items`);
     return data;
   } catch (error) {
     console.error('History endpoint not found, returning empty', error);
