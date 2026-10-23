@@ -180,6 +180,12 @@ export default function TemplateDetailPage() {
         </div>
         <CollapsibleContent className="text-xs text-muted-foreground leading-relaxed mt-2">
           {template.system_prompt}
+          {template.output_schema && (
+            <>
+              <h5 className="font-semibold mt-3 mb-1">Output Schema</h5>
+              <pre className="font-mono whitespace-pre-wrap">{JSON.stringify(template.output_schema, null, 2)}</pre>
+            </>
+          )}
         </CollapsibleContent>
       </Collapsible>
 
