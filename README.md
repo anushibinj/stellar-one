@@ -65,13 +65,13 @@ cp .env.example .env
 ```
 At minimum set `OPENAI_API_KEY`. Every variable in `.env` is injected into the Python app, both when run locally and when run via Docker Compose.
 
-The frontend also reads this root `.env`. Vite only exposes variables prefixed with `VITE_` to the React code (via `import.meta.env.VITE_*`), so add your custom frontend props with that prefix, e.g. `VITE_API_URL=http://localhost:8000`. Other variables (like `OPENAI_API_KEY`) are never exposed to the browser.
+The frontend also reads this root `.env`. Only variables prefixed with `VITE_` reach the React code (via `src/lib/env.ts`), so add your custom frontend props with that prefix, e.g. `VITE_API_URL=http://localhost:8000`. Other variables (like `OPENAI_API_KEY`) are never exposed to the browser.
 
 ### 4. Run with Docker Compose (frontend + app + database)
 `docker-compose.yml` defines three services:
 *   `db`: PostgreSQL with pgvector (port `5432`).
 *   `app`: the FastAPI backend, built from the `Dockerfile` (port `8000`). It waits for `db` to be healthy and loads your root `.env` file (optional).
-*   `frontend`: the Vite React dev server, built from `frontend/Dockerfile` (port `5173`, hot reload enabled). It loads your root `.env` file (optional); `VITE_*` props are available to the app.
+*   `frontend`: the React app, built with `pnpm run build` in `frontend/Dockerfile` and served in production mode by a small static server (`pnpm run serve`, port `5173`). It loads your root `.env` file (optional).
 
 ```bash
 docker compose up -d --build
@@ -83,7 +83,7 @@ Inside the container, `DATABASE_URL` from `.env` is ignored (it usually points a
 
 The frontend is then available at [http://localhost:5173](http://localhost:5173) and the API at [http://localhost:8000/docs](http://localhost:8000/docs). To publish them on different host ports, set `FRONTEND_PORT` (default `5173`) and `APP_PORT` (default `8000`) in `.env`.
 
-`VITE_API_URL` (default `http://localhost:8000`) is the backend URL called by your *browser*, so it should be reachable from your machine rather than a Docker-internal hostname. If you change `.env`, run `docker compose up -d` again to re-create the services.
+`VITE_API_URL` (default `http://localhost:8000`) is the backend URL called by your *browser*, so it should be reachable from your machine rather than a Docker-internal hostname. Because the frontend is a static production build, Vite can't read env vars at runtime. Instead, the container's entrypoint writes all `VITE_*` variables to `/env.js` on startup, which the app loads before booting. So after changing `.env`, just run `docker compose up -d` again (no image rebuild needed).
 
 ### 5. Alternative: Run Locally
 Start only the database, then run the app on your machine:
