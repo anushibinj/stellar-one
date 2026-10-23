@@ -3,7 +3,7 @@ services:
     build: .
     container_name: stellar_one_app
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     # Custom props from a root-level .env file (optional) are injected here.
     env_file:
       - path: .env
