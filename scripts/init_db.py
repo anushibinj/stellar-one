@@ -16,6 +16,7 @@ async def init_db():
         
         # Create tables
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS output_schema JSONB"))
         print("Database initialized successfully.")
 
 if __name__ == "__main__":

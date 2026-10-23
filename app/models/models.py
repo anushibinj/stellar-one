@@ -1,10 +1,10 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, DateTime, ForeignKey, UniqueConstraint, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from pgvector.sqlalchemy import Vector
 import uuid
 from datetime import datetime
-from typing import List
+from typing import Any, Dict, List, Optional
 
 class Base(DeclarativeBase):
     pass
@@ -15,6 +15,8 @@ class Template(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     system_prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    # JSON Schema used to constrain the LLM output (Ollama structured outputs). NULL = unconstrained.
+    output_schema: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     
     items: Mapped[List["Item"]] = relationship("Item", back_populates="template", cascade="all, delete-orphan")
