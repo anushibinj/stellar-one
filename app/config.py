@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = "" # Now optional as we use Ollama for embeddings
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     
+    # Seconds to wait on Ollama (LLM + embeddings) before giving up; local models can be slow
+    OLLAMA_TIMEOUT: float = 600.0
+
     # Generation settings
     MAX_RETRIES: int = 5
     SIMILARITY_THRESHOLD: float = 0.30  # Cosine distance: lower means more similar
