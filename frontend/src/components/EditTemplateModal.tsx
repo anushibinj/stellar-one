@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { parseOutputSchema, stringifyOutputSchema } from '../lib/schema';
 
 interface EditTemplateModalProps {
   template: Template;
@@ -26,9 +27,11 @@ interface EditTemplateModalProps {
 export default function EditTemplateModal({ template, isOpen, onClose, onSuccess }: EditTemplateModalProps) {
   const [name, setName] = useState(template.name);
   const [systemPrompt, setSystemPrompt] = useState(template.system_prompt);
+  const [outputSchema, setOutputSchema] = useState(stringifyOutputSchema(template.output_schema));
 
   const mutation = useMutation({
-    mutationFn: () => updateTemplate(template.id, { name: name.trim(), system_prompt: systemPrompt.trim() }),
+    mutationFn: (schema: Record<string, unknown> | null) =>
+      updateTemplate(template.id, { name: name.trim(), system_prompt: systemPrompt.trim(), output_schema: schema }),
     onSuccess: () => {
       toast.success('Template updated successfully');
       onSuccess();
@@ -45,7 +48,14 @@ export default function EditTemplateModal({ template, isOpen, onClose, onSuccess
       toast.error('Please fill in all fields');
       return;
     }
-    mutation.mutate();
+    let schema;
+    try {
+      schema = parseOutputSchema(outputSchema);
+    } catch (err) {
+      toast.error(err instanceof Error ? `Invalid output schema: ${err.message}` : 'Invalid output schema');
+      return;
+    }
+    mutation.mutate(schema);
   };
 
   return (
@@ -55,7 +65,7 @@ export default function EditTemplateModal({ template, isOpen, onClose, onSuccess
           <DialogHeader>
             <DialogTitle>Edit Template</DialogTitle>
             <DialogDescription>
-              Update the name and system prompt. Existing generated items are kept.
+              Update the name, system prompt and output schema. Existing generated items are kept.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -71,6 +81,19 @@ export default function EditTemplateModal({ template, isOpen, onClose, onSuccess
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-schema">Output Schema (JSON, optional)</Label>
+              <Textarea
+                id="edit-schema"
+                placeholder={'{"type": "object", "properties": {...}, "required": [...]}'}
+                className="min-h-[120px] font-mono text-xs"
+                value={outputSchema}
+                onChange={(e) => setOutputSchema(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enforced via constrained structured outputs. Leave empty for free-form text.
+              </p>
             </div>
           </div>
           <DialogFooter>
