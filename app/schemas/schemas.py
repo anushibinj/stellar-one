@@ -50,6 +50,8 @@ class SimilarItem(BaseModel):
 
 class GenerationResponse(BaseModel):
     content: str
+    chat_model: str
+    embedding_model: str
     attempts: int
     similar_items: List[SimilarItem]
 
@@ -57,6 +59,8 @@ class ItemRead(BaseModel):
     id: UUID
     template_id: UUID
     content: str
+    chat_model: Optional[str] = None
+    embedding_model: Optional[str] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -69,4 +73,6 @@ class RandomItemRequest(BaseModel):
 class RandomItemResponse(BaseModel):
     id: UUID
     content: str
+    chat_model: Optional[str] = None
+    embedding_model: Optional[str] = None
     generated: bool
