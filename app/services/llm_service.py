@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any, Dict, Optional
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.config import settings
@@ -19,13 +20,20 @@ class LLMService:
             api_key=api_key,
         )
 
-    async def generate_text(self, system_prompt: str, user_prompt: str) -> str:
+    async def generate_text(self, system_prompt: str, user_prompt: str, output_schema: Optional[Dict[str, Any]] = None) -> str:
         logger.info("Starting LLM generation")
         messages = [
             SystemMessage(content=system_prompt),
             HumanMessage(content=user_prompt)
         ]
-        response = await self.llm.ainvoke(messages)
+        llm = self.llm
+        if output_schema:
+            # Constrained decoding: Ollama (and OpenAI) enforce the schema on the sampled tokens
+            llm = self.llm.bind(response_format={
+                "type": "json_schema",
+                "json_schema": {"name": "output", "schema": output_schema, "strict": True},
+            })
+        response = await llm.ainvoke(messages)
         logger.info("LLM generation completed")
         return response.content
 
