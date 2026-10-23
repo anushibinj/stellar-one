@@ -34,3 +34,11 @@ export const getTemplateHistory = async (templateId: string): Promise<GeneratedI
     return [];
   }
 };
+
+export const updateTemplate = async (
+  id: string,
+  template: CreateTemplateDTO
+): Promise<Template> => {
+  const { data } = await api.put(`/templates/${id}`, template);
+  return data;
+};
