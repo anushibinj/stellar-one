@@ -203,7 +203,7 @@ export default function TemplateDetailPage() {
               <HistoryIcon className="mr-2 h-4 w-4" />
               Generation History
             </h2>
-            <HistoryList history={history || []} isLoading={isHistoryLoading} />
+            <HistoryList templateId={id!} history={history || []} isLoading={isHistoryLoading} />
           </section>
         </div>
 
