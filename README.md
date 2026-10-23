@@ -71,7 +71,9 @@ At minimum set `OPENAI_API_KEY`. Every variable in `.env` is injected into the P
 docker compose up -d --build
 docker compose exec app python scripts/init_db.py   # first run only
 ```
-Inside the container, `DATABASE_URL` is automatically pointed at the `db` service, and `OLLAMA_BASE_URL` defaults to `http://host.docker.internal:11434` (your host's Ollama). To use a different Ollama address from Docker, set `DOCKER_OLLAMA_BASE_URL` in `.env`. Other values from `.env` (e.g. `OPENAI_API_KEY`, `MAX_RETRIES`) pass through unchanged.
+The `db` service is configurable from `.env` via `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` and `POSTGRES_PORT` (host port); defaults are `postgres` / `postgres` / `stellar_one` / `5432`. Note that Postgres only applies user/password/db on first initialization of the volume; run `docker compose down -v` to re-create it after changing them.
+
+Inside the container, `DATABASE_URL` from `.env` is ignored (it usually points at `localhost`). Instead it defaults to the `db` service built from the `POSTGRES_*` values; set `DOCKER_DATABASE_URL` in `.env` to override it. Also, `OLLAMA_BASE_URL` defaults to `http://host.docker.internal:11434` (your host's Ollama). To use a different Ollama address from Docker, set `DOCKER_OLLAMA_BASE_URL` in `.env`. Other values from `.env` (e.g. `OPENAI_API_KEY`, `MAX_RETRIES`) pass through unchanged.
 
 The API is then available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
