@@ -9,6 +9,9 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+RUN pnpm run build
 
+# VITE_* props are injected at container start (not build time), see docker-entrypoint.sh
+ENTRYPOINT ["./docker-entrypoint.sh"]
 EXPOSE 5173
-CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "5173"]
+CMD ["pnpm", "run", "serve"]
