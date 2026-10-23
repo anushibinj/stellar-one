@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import type { HistoryItem } from '../types';
@@ -8,7 +8,6 @@ import { deleteTemplateItem } from '../services/templates';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +19,8 @@ import {
 import CopyButton from './CopyButton';
 import ContentView from './ContentView';
 import ModelBadges from './ModelBadges';
+
+const PAGE_SIZE = 5;
 
 interface HistoryListProps {
   templateId: string;
@@ -50,6 +51,7 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<HistoryItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<HistoryItem | null>(null);
+  const [page, setPage] = useState(0);
 
   const deleteMutation = useMutation({
     mutationFn: (itemId: string) => deleteTemplateItem(templateId, itemId),
@@ -83,11 +85,15 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
     );
   }
 
+  const pageCount = Math.ceil(history.length / PAGE_SIZE);
+  const currentPage = Math.min(page, pageCount - 1);
+  const pageItems = history.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
   return (
     <>
-      <ScrollArea className="h-[400px] pr-3">
+      <div className="space-y-2">
         <div className="space-y-2">
-          {history.map((item) => (
+          {pageItems.map((item) => (
             <Card
               key={item.id}
               role="button"
@@ -119,7 +125,32 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
             </Card>
           ))}
         </div>
-      </ScrollArea>
+        {pageCount > 1 && (
+          <div className="flex items-center justify-between pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 0}
+              onClick={() => setPage(currentPage - 1)}
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              <span className="ml-1">Newer</span>
+            </Button>
+            <span className="text-[10px] font-mono text-muted-foreground">
+              Page {currentPage + 1} of {pageCount}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= pageCount - 1}
+              onClick={() => setPage(currentPage + 1)}
+            >
+              <span className="mr-1">Older</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+      </div>
 
       <Dialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="sm:max-w-2xl">
