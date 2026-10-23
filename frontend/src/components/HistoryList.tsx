@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import CopyButton from './CopyButton';
+import ContentView from './ContentView';
 
 interface HistoryListProps {
   templateId: string;
@@ -124,9 +125,7 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
               {selected && format(new Date(selected.created_at), 'MMM d, yyyy HH:mm')}
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed">
-            {selected?.content}
-          </div>
+          {selected && <ContentView content={selected.content} />}
           <DialogFooter>
             {selected && (
               <Button variant="destructive" size="sm" onClick={() => setPendingDelete(selected)}>
