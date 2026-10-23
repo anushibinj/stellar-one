@@ -28,6 +28,9 @@ class Item(Base):
     template_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("templates.id"), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[Vector] = mapped_column(Vector(768), nullable=False)
+    # Models that produced this content, for auditing quality per model. NULL for items created before tracking.
+    chat_model: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    embedding_model: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("CURRENT_TIMESTAMP"))
     
     template: Mapped["Template"] = relationship("Template", back_populates="items")

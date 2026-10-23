@@ -21,6 +21,8 @@ async def lifespan(_: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         # create_all doesn't alter existing tables; add columns introduced after the first release
         await conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS output_schema JSONB"))
+        await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS chat_model VARCHAR(255)"))
+        await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(255)"))
     yield
 
 
