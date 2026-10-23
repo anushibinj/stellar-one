@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import CopyButton from './CopyButton';
 import ContentView from './ContentView';
+import ModelBadges from './ModelBadges';
 
 interface HistoryListProps {
   templateId: string;
@@ -101,9 +102,12 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
               className="cursor-pointer hover:bg-muted/30 transition-colors shadow-sm"
             >
               <CardContent className="p-3 flex justify-between items-center gap-3">
-                <p className="text-xs line-clamp-2 italic leading-relaxed">
-                  "{item.content}"
-                </p>
+                <div className="min-w-0 space-y-1">
+                  <p className="text-xs line-clamp-2 italic leading-relaxed">
+                    "{item.content}"
+                  </p>
+                  <ModelBadges chat_model={item.chat_model} embedding_model={item.embedding_model} />
+                </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <CopyButton text={item.content} />
                   <DeleteButton onClick={() => setPendingDelete(item)} />
@@ -125,6 +129,9 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
               {selected && format(new Date(selected.created_at), 'MMM d, yyyy HH:mm')}
             </DialogDescription>
           </DialogHeader>
+          {selected && (
+            <ModelBadges chat_model={selected.chat_model} embedding_model={selected.embedding_model} />
+          )}
           {selected && <ContentView content={selected.content} />}
           <DialogFooter>
             {selected && (
