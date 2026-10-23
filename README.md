@@ -10,6 +10,7 @@ Stellar-One is a production-ready backend system designed to generate unique con
 *   **ORM:** [SQLAlchemy 2.0](https://www.sqlalchemy.org/) (Async).
 *   **Embeddings:** [Ollama](https://ollama.com/) (Local, `nomic-embed-text`).
 *   **LLM:** [OpenAI](https://openai.com/) (GPT-4o).
+*   **Frontend:** [Vite](https://vite.dev/) + React + TypeScript + Tailwind (managed with `pnpm`).
 
 ## 🧠 Core Logic: Semantic Uniqueness
 
@@ -34,8 +35,9 @@ The system follows a strict LangGraph-driven workflow for every generation reque
   /schemas      # Pydantic validation schemas
   /services     # LLM, Embedding, and Similarity logic
 /scripts        # Database initialization
+/frontend       # Vite + React frontend (has its own Dockerfile)
 Dockerfile      # Image for the Python app
-docker-compose.yml  # App + database services
+docker-compose.yml  # Frontend + app + database services
 .env.example    # Sample environment configuration
 main.py         # Application entry point
 ```
@@ -44,7 +46,8 @@ main.py         # Application entry point
 
 ### 1. Prerequisites
 *   [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
-*   Python 3.12+ and [uv](https://docs.astral.sh/uv/) (only for running locally without Docker)
+*   Python 3.12+ and [uv](https://docs.astral.sh/uv/) (only for running the backend locally without Docker)
+*   [Node.js](https://nodejs.org/) 22+ and [pnpm](https://pnpm.io/) (only for running the frontend locally without Docker)
 *   [Ollama](https://ollama.com/) installed locally.
 *   OpenAI API Key (for LLM).
 
@@ -62,10 +65,13 @@ cp .env.example .env
 ```
 At minimum set `OPENAI_API_KEY`. Every variable in `.env` is injected into the Python app, both when run locally and when run via Docker Compose.
 
-### 4. Run with Docker Compose (app + database)
-`docker-compose.yml` defines two services:
+The frontend also reads this root `.env`. Vite only exposes variables prefixed with `VITE_` to the React code (via `import.meta.env.VITE_*`), so add your custom frontend props with that prefix, e.g. `VITE_API_URL=http://localhost:8000`. Other variables (like `OPENAI_API_KEY`) are never exposed to the browser.
+
+### 4. Run with Docker Compose (frontend + app + database)
+`docker-compose.yml` defines three services:
 *   `db`: PostgreSQL with pgvector (port `5432`).
 *   `app`: the FastAPI backend, built from the `Dockerfile` (port `8000`). It waits for `db` to be healthy and loads your root `.env` file (optional).
+*   `frontend`: the Vite React dev server, built from `frontend/Dockerfile` (port `5173`, hot reload enabled). It loads your root `.env` file (optional); `VITE_*` props are available to the app.
 
 ```bash
 docker compose up -d --build
@@ -75,7 +81,9 @@ The `db` service is configurable from `.env` via `POSTGRES_USER`, `POSTGRES_PASS
 
 Inside the container, `DATABASE_URL` from `.env` is ignored (it usually points at `localhost`). Instead it defaults to the `db` service built from the `POSTGRES_*` values; set `DOCKER_DATABASE_URL` in `.env` to override it. Also, `OLLAMA_BASE_URL` defaults to `http://host.docker.internal:11434` (your host's Ollama). To use a different Ollama address from Docker, set `DOCKER_OLLAMA_BASE_URL` in `.env`. Other values from `.env` (e.g. `OPENAI_API_KEY`, `MAX_RETRIES`) pass through unchanged.
 
-The API is then available at [http://localhost:8000/docs](http://localhost:8000/docs). To publish it on a different host port, set `APP_PORT` in `.env` (default `8000`).
+The frontend is then available at [http://localhost:5173](http://localhost:5173) and the API at [http://localhost:8000/docs](http://localhost:8000/docs). To publish them on different host ports, set `FRONTEND_PORT` (default `5173`) and `APP_PORT` (default `8000`) in `.env`.
+
+`VITE_API_URL` (default `http://localhost:8000`) is the backend URL called by your *browser*, so it should be reachable from your machine rather than a Docker-internal hostname. If you change `.env`, run `docker compose up -d` again to re-create the services.
 
 ### 5. Alternative: Run Locally
 Start only the database, then run the app on your machine:
@@ -84,6 +92,12 @@ docker compose up -d db
 uv sync
 uv run scripts/reset_db.py   # initialize or reset the database
 uv run uvicorn main:app --reload
+```
+Then, in another terminal, run the frontend (it picks up `VITE_*` props from the root `.env`):
+```bash
+cd frontend
+pnpm install
+pnpm dev
 ```
 *Note: If you already had the database initialized with 1536-dimension vectors, you will need to reset the tables (`reset_db.py`) to use the new 768-dimension vectors.*
 
