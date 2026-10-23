@@ -18,6 +18,7 @@ class LLMService:
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),  # fallback if not set
             base_url=base_url,
             api_key=api_key,
+            timeout=settings.OLLAMA_TIMEOUT,
         )
 
     async def generate_text(self, system_prompt: str, user_prompt: str, output_schema: Optional[Dict[str, Any]] = None) -> str:
