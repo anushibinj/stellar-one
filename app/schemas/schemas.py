@@ -35,3 +35,13 @@ class ItemRead(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class RandomItemRequest(BaseModel):
+    random_key: Optional[str] = Field(default=None, alias="randomKey", max_length=255)
+
+    model_config = ConfigDict(populate_by_name=True)
+
+class RandomItemResponse(BaseModel):
+    id: UUID
+    content: str
+    generated: bool
