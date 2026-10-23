@@ -9,6 +9,8 @@ from app.db.session import get_db
 from app.models.models import Template, Item, ServedItem
 from app.schemas.schemas import TemplateCreate, TemplateUpdate, TemplateRead, GenerationResponse, ItemRead, RandomItemRequest, RandomItemResponse
 from app.graph.stellar_graph import stellar_graph
+from app.services.llm_service import llm_service
+from app.services.embedding_service import embedding_service
 from app.config import settings
 
 router = APIRouter(tags=["Templates & Generation"])
@@ -70,7 +72,9 @@ async def _generate_and_store(template: Template, db: AsyncSession):
     new_item = Item(
         template_id=template.id,
         content=final_state["candidate_content"],
-        embedding=final_state["candidate_embedding"]
+        embedding=final_state["candidate_embedding"],
+        chat_model=llm_service.model,
+        embedding_model=embedding_service.model
     )
     db.add(new_item)
     await db.commit()
@@ -83,10 +87,12 @@ async def generate_item(template_id: uuid.UUID, db: AsyncSession = Depends(get_d
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
-    _, final_state = await _generate_and_store(template, db)
+    new_item, final_state = await _generate_and_store(template, db)
 
     return {
         "content": final_state["candidate_content"],
+        "chat_model": new_item.chat_model,
+        "embedding_model": new_item.embedding_model,
         "attempts": final_state["attempts"],
         "similar_items": final_state["similar_items"]
     }
@@ -113,21 +119,21 @@ async def random_item(template_id: uuid.UUID, data: Optional[RandomItemRequest] 
         if item is None:
             break
         if random_key is None:
-            return {"id": item.id, "content": item.content, "generated": False}
+            return {"id": item.id, "content": item.content, "chat_model": item.chat_model, "embedding_model": item.embedding_model, "generated": False}
         db.add(ServedItem(template_id=template_id, random_key=random_key, item_id=item.id))
         try:
             await db.commit()
         except IntegrityError:
             await db.rollback()
             continue
-        return {"id": item.id, "content": item.content, "generated": False}
+        return {"id": item.id, "content": item.content, "chat_model": item.chat_model, "embedding_model": item.embedding_model, "generated": False}
 
     # No unserved items left: generate a new one with the existing logic
     new_item, _ = await _generate_and_store(template, db)
     if random_key is not None:
         db.add(ServedItem(template_id=template_id, random_key=random_key, item_id=new_item.id))
         await db.commit()
-    return {"id": new_item.id, "content": new_item.content, "generated": True}
+    return {"id": new_item.id, "content": new_item.content, "chat_model": new_item.chat_model, "embedding_model": new_item.embedding_model, "generated": True}
 
 @router.get("/templates/{template_id}/items", response_model=List[ItemRead], summary="List items by template", description="Retrieve all generated items belonging to a specific template.")
 async def list_template_items(template_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
