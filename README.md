@@ -75,7 +75,7 @@ The `db` service is configurable from `.env` via `POSTGRES_USER`, `POSTGRES_PASS
 
 Inside the container, `DATABASE_URL` from `.env` is ignored (it usually points at `localhost`). Instead it defaults to the `db` service built from the `POSTGRES_*` values; set `DOCKER_DATABASE_URL` in `.env` to override it. Also, `OLLAMA_BASE_URL` defaults to `http://host.docker.internal:11434` (your host's Ollama). To use a different Ollama address from Docker, set `DOCKER_OLLAMA_BASE_URL` in `.env`. Other values from `.env` (e.g. `OPENAI_API_KEY`, `MAX_RETRIES`) pass through unchanged.
 
-The API is then available at [http://localhost:8000/docs](http://localhost:8000/docs).
+The API is then available at [http://localhost:8000/docs](http://localhost:8000/docs). To publish it on a different host port, set `APP_PORT` in `.env` (default `8000`).
 
 ### 5. Alternative: Run Locally
 Start only the database, then run the app on your machine:
