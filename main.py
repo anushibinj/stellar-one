@@ -21,6 +21,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    # Echo the request origin so credentialed requests also work (a literal "*" is rejected by browsers)
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
