@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     MAX_RETRIES: int = 5
     SIMILARITY_THRESHOLD: float = 0.30  # Cosine distance: lower means more similar
     EMBEDDING_MODEL: str = "nomic-embed-text"
+    # Embedding endpoint, independent of the chat endpoint (OPENAI_BASE_URL). Empty falls back to OLLAMA_BASE_URL.
+    EMBEDDING_BASE_URL: str = ""
+    EMBEDDING_API_KEY: str = ""
+    # "ollama" -> POST {base}/api/embeddings; "openai" -> POST {base}/embeddings (OpenAI-compatible, base includes /v1)
+    EMBEDDING_API_STYLE: str = "ollama"
     LLM_MODEL: str = "gpt-4o-mini"
     
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
