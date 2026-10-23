@@ -13,6 +13,8 @@ export interface SimilarItem {
 
 export interface GeneratedItemResponse {
   content: string;
+  chat_model: string;
+  embedding_model: string;
   attempts: number;
   similar_items: SimilarItem[];
 }
@@ -21,6 +23,8 @@ export interface HistoryItem {
   id: string;
   template_id: string;
   content: string;
+  chat_model: string | null;
+  embedding_model: string | null;
   created_at: string;
 }
 
