@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import List
+from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+from typing import List, Optional
 import uuid
 
 from app.db.session import get_db
-from app.models.models import Template, Item
-from app.schemas.schemas import TemplateCreate, TemplateUpdate, TemplateRead, GenerationResponse, ItemRead
+from app.models.models import Template, Item, ServedItem
+from app.schemas.schemas import TemplateCreate, TemplateUpdate, TemplateRead, GenerationResponse, ItemRead, RandomItemRequest, RandomItemResponse
 from app.graph.stellar_graph import stellar_graph
 from app.config import settings
 
@@ -87,6 +88,44 @@ async def generate_item(template_id: uuid.UUID, db: AsyncSession = Depends(get_d
         "attempts": final_state["attempts"],
         "similar_items": final_state["similar_items"]
     }
+
+@router.post("/templates/{template_id}/randomItem", response_model=RandomItemResponse, summary="Get a random item", description="Return a random existing item for the template. With a randomKey, items are never repeated for that key until every existing item has been served, after which new items are generated. Without a randomKey, a random existing item is returned statelessly (generating one if the template has none).")
+async def random_item(template_id: uuid.UUID, data: Optional[RandomItemRequest] = Body(default=None), db: AsyncSession = Depends(get_db)):
+    template = await db.get(Template, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    random_key = data.random_key if data else None
+
+    query = select(Item).where(Item.template_id == template_id)
+    if random_key is not None:
+        served = select(ServedItem.item_id).where(
+            ServedItem.template_id == template_id, ServedItem.random_key == random_key
+        )
+        query = query.where(Item.id.not_in(served))
+    query = query.order_by(func.random()).limit(1)
+
+    # A concurrent request with the same key may claim the item first; retry with a fresh pick.
+    for _ in range(5):
+        item = (await db.execute(query)).scalars().first()
+        if item is None:
+            break
+        if random_key is None:
+            return {"id": item.id, "content": item.content, "generated": False}
+        db.add(ServedItem(template_id=template_id, random_key=random_key, item_id=item.id))
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            continue
+        return {"id": item.id, "content": item.content, "generated": False}
+
+    # No unserved items left: generate a new one with the existing logic
+    new_item, _ = await _generate_and_store(template, db)
+    if random_key is not None:
+        db.add(ServedItem(template_id=template_id, random_key=random_key, item_id=new_item.id))
+        await db.commit()
+    return {"id": new_item.id, "content": new_item.content, "generated": True}
 
 @router.get("/templates/{template_id}/items", response_model=List[ItemRead], summary="List items by template", description="Retrieve all generated items belonging to a specific template.")
 async def list_template_items(template_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
