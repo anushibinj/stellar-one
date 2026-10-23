@@ -1,5 +1,5 @@
 import api from './api';
-import type { Template, GeneratedItemResponse, CreateTemplateDTO } from '../types';
+import type { Template, GeneratedItemResponse, HistoryItem, CreateTemplateDTO } from '../types';
 
 export const getTemplates = async (): Promise<Template[]> => {
   const { data } = await api.get('/templates');
@@ -25,7 +25,7 @@ export const generateItem = async (templateId: string): Promise<GeneratedItemRes
   return data;
 };
 
-export const getTemplateHistory = async (templateId: string): Promise<GeneratedItemResponse[]> => {
+export const getTemplateHistory = async (templateId: string): Promise<HistoryItem[]> => {
   try {
     const { data } = await api.get(`/templates/${templateId}/items`);
     return data;
@@ -33,6 +33,10 @@ export const getTemplateHistory = async (templateId: string): Promise<GeneratedI
     console.error('History endpoint not found, returning empty', error);
     return [];
   }
+};
+
+export const deleteTemplateItem = async (templateId: string, itemId: string): Promise<void> => {
+  await api.delete(`/templates/${templateId}/items/${itemId}`);
 };
 
 export const updateTemplate = async (

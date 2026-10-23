@@ -17,6 +17,13 @@ export interface GeneratedItemResponse {
   similar_items: SimilarItem[];
 }
 
+export interface HistoryItem {
+  id: string;
+  template_id: string;
+  content: string;
+  created_at: string;
+}
+
 export interface CreateTemplateDTO {
   name: string;
   system_prompt: string;
