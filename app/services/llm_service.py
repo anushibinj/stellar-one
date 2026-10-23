@@ -12,7 +12,7 @@ class LLMService:
     def __init__(self):
         self.llm = ChatOpenAI(
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),  # fallback if not set
-            base_url=os.getenv("OPENAI_BASE_URL"),
+            base_url=os.getenv("OPENAI_BASE_URL") or None,  # empty string -> default OpenAI endpoint
             api_key=os.getenv("OPENAI_API_KEY"),
         )
 
