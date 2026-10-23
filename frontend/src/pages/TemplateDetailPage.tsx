@@ -14,7 +14,7 @@ import GeneratedResultCard from '../components/GeneratedResultCard';
 import SimilarityList from '../components/SimilarityList';
 import HistoryList from '../components/HistoryList';
 import EditTemplateModal from '../components/EditTemplateModal';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 
 export default function TemplateDetailPage() {
@@ -25,6 +25,23 @@ export default function TemplateDetailPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   
   const { generationLoading, setGenerationLoading, setGenerationResult } = useStore();
+
+  // Track the template currently being viewed so late responses for a
+  // previously viewed template don't overwrite the current one.
+  const currentIdRef = useRef(id);
+
+  // Clear template-scoped state whenever the viewed template changes (and on unmount).
+  useEffect(() => {
+    currentIdRef.current = id;
+    setGenerationResult(null);
+    setGenerationLoading(false);
+    setIsPromptOpen(false);
+    setIsEditOpen(false);
+    return () => {
+      setGenerationResult(null);
+      setGenerationLoading(false);
+    };
+  }, [id, setGenerationResult, setGenerationLoading]);
 
   const { data: template, isLoading: isTemplateLoading, isError } = useQuery({
     queryKey: ['template', id],
@@ -39,20 +56,23 @@ export default function TemplateDetailPage() {
   });
 
   const generateMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (templateId: string) => {
       setGenerationLoading(true);
-      return generateItem(id!);
+      return generateItem(templateId);
     },
-    onSuccess: (data) => {
+    onSuccess: (data, templateId) => {
+      queryClient.invalidateQueries({ queryKey: ['history', templateId] });
+      if (currentIdRef.current !== templateId) return;
       setGenerationResult(data);
       toast.success('Item generated successfully');
-      queryClient.invalidateQueries({ queryKey: ['history', id] });
     },
-    onError: (error) => {
+    onError: (error, templateId) => {
+      if (currentIdRef.current !== templateId) return;
       toast.error('Generation failed');
       console.error(error);
     },
-    onSettled: () => {
+    onSettled: (_data, _error, templateId) => {
+      if (currentIdRef.current !== templateId) return;
       setGenerationLoading(false);
     }
   });
@@ -110,7 +130,7 @@ export default function TemplateDetailPage() {
         </Button>
         <Button 
           size="sm" 
-          onClick={() => generateMutation.mutate()} 
+          onClick={() => generateMutation.mutate(id!)}
           disabled={generationLoading}
           className="flex-1 md:flex-none shadow-sm shadow-primary/20"
         >
