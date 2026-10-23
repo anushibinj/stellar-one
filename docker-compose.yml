@@ -1,4 +1,23 @@
 services:
+  app:
+    build: .
+    container_name: stellar_one_app
+    ports:
+      - "8000:8000"
+    # Custom props from a root-level .env file (optional) are injected here.
+    env_file:
+      - path: .env
+        required: false
+    # These override values from .env, since localhost means something else inside a container.
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/stellar_one
+      OLLAMA_BASE_URL: ${DOCKER_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: pgvector/pgvector:pg16
     container_name: stellar_one_db
