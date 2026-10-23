@@ -20,7 +20,7 @@ class EmbeddingService:
         }
         
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=settings.OLLAMA_TIMEOUT) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 
