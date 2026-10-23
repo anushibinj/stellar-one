@@ -138,3 +138,13 @@ async def list_template_items(template_id: uuid.UUID, db: AsyncSession = Depends
 async def list_all_items(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Item).order_by(Item.created_at.desc()))
     return result.scalars().all()
+
+@router.delete("/templates/{template_id}/items/{item_id}", summary="Delete an item", description="Delete a single generated item from a template's history.")
+async def delete_template_item(template_id: uuid.UUID, item_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    item = await db.get(Item, item_id)
+    if not item or item.template_id != template_id:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    await db.delete(item)
+    await db.commit()
+    return {"message": "Item deleted successfully"}
