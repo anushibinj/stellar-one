@@ -2,6 +2,7 @@ export interface Template {
   id: string;
   name: string;
   system_prompt: string;
+  output_schema: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -19,4 +20,5 @@ export interface GeneratedItemResponse {
 export interface CreateTemplateDTO {
   name: string;
   system_prompt: string;
+  output_schema: Record<string, unknown> | null;
 }
