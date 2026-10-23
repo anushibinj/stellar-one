@@ -47,16 +47,10 @@ async def delete_template(template_id: uuid.UUID, db: AsyncSession = Depends(get
     await db.commit()
     return {"message": "Template deleted successfully"}
 
-@router.post("/templates/{template_id}/generate", response_model=GenerationResponse, summary="Generate unique item", description="Trigger the semantic generation workflow to create a new item that is unique relative to existing items in this template.")
-async def generate_item(template_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
-    # Fetch template
-    template = await db.get(Template, template_id)
-    if not template:
-        raise HTTPException(status_code=404, detail="Template not found")
-    
-    # Run LangGraph workflow
+async def _generate_and_store(template: Template, db: AsyncSession):
+    """Run the generation workflow for a template and persist the accepted item."""
     initial_state = {
-        "template_id": template_id,
+        "template_id": template.id,
         "system_prompt": template.system_prompt,
         "candidate_content": None,
         "candidate_embedding": None,
@@ -67,18 +61,27 @@ async def generate_item(template_id: uuid.UUID, db: AsyncSession = Depends(get_d
         "accepted": False,
         "db_session": db
     }
-    
+
     final_state = await stellar_graph.ainvoke(initial_state)
-    
-    # Store the accepted item
+
     new_item = Item(
-        template_id=template_id,
+        template_id=template.id,
         content=final_state["candidate_content"],
         embedding=final_state["candidate_embedding"]
     )
     db.add(new_item)
     await db.commit()
-    
+    return new_item, final_state
+
+@router.post("/templates/{template_id}/generate", response_model=GenerationResponse, summary="Generate unique item", description="Trigger the semantic generation workflow to create a new item that is unique relative to existing items in this template.")
+async def generate_item(template_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    # Fetch template
+    template = await db.get(Template, template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    _, final_state = await _generate_and_store(template, db)
+
     return {
         "content": final_state["candidate_content"],
         "attempts": final_state["attempts"],
