@@ -15,7 +15,7 @@ router = APIRouter(tags=["Templates & Generation"])
 
 @router.post("/templates", response_model=TemplateRead, summary="Create a new template", description="Create a template with a name and system prompt to define the generation logic.")
 async def create_template(data: TemplateCreate, db: AsyncSession = Depends(get_db)):
-    template = Template(name=data.name, system_prompt=data.system_prompt)
+    template = Template(name=data.name, system_prompt=data.system_prompt, output_schema=data.output_schema)
     db.add(template)
     await db.commit()
     await db.refresh(template)
@@ -26,7 +26,7 @@ async def list_templates(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Template))
     return result.scalars().all()
 
-@router.put("/templates/{template_id}", response_model=TemplateRead, summary="Update a template", description="Update the name and system prompt of an existing template.")
+@router.put("/templates/{template_id}", response_model=TemplateRead, summary="Update a template", description="Update the name, system prompt and output schema of an existing template.")
 async def update_template(template_id: uuid.UUID, data: TemplateUpdate, db: AsyncSession = Depends(get_db)):
     template = await db.get(Template, template_id)
     if not template:
@@ -34,6 +34,7 @@ async def update_template(template_id: uuid.UUID, data: TemplateUpdate, db: Asyn
     
     template.name = data.name
     template.system_prompt = data.system_prompt
+    template.output_schema = data.output_schema
     await db.commit()
     await db.refresh(template)
     return template
@@ -53,6 +54,7 @@ async def _generate_and_store(template: Template, db: AsyncSession):
     initial_state = {
         "template_id": template.id,
         "system_prompt": template.system_prompt,
+        "output_schema": template.output_schema,
         "candidate_content": None,
         "candidate_embedding": None,
         "similar_items": [],
