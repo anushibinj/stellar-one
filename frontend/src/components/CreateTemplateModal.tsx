@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { parseOutputSchema } from '../lib/schema';
 
 interface CreateTemplateModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ interface CreateTemplateModalProps {
 export default function CreateTemplateModal({ isOpen, onClose, onSuccess }: CreateTemplateModalProps) {
   const [name, setName] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
+  const [outputSchema, setOutputSchema] = useState('');
 
   const mutation = useMutation({
     mutationFn: createTemplate,
@@ -31,6 +33,7 @@ export default function CreateTemplateModal({ isOpen, onClose, onSuccess }: Crea
       toast.success('Template created successfully');
       setName('');
       setSystemPrompt('');
+      setOutputSchema('');
       onSuccess();
     },
     onError: (error) => {
@@ -45,7 +48,14 @@ export default function CreateTemplateModal({ isOpen, onClose, onSuccess }: Crea
       toast.error('Please fill in all fields');
       return;
     }
-    mutation.mutate({ name, system_prompt: systemPrompt });
+    let schema;
+    try {
+      schema = parseOutputSchema(outputSchema);
+    } catch (err) {
+      toast.error(err instanceof Error ? `Invalid output schema: ${err.message}` : 'Invalid output schema');
+      return;
+    }
+    mutation.mutate({ name, system_prompt: systemPrompt, output_schema: schema });
   };
 
   return (
@@ -77,6 +87,19 @@ export default function CreateTemplateModal({ isOpen, onClose, onSuccess }: Crea
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="schema">Output Schema (JSON, optional)</Label>
+              <Textarea
+                id="schema"
+                placeholder={'{"type": "object", "properties": {...}, "required": [...]}'}
+                className="min-h-[120px] font-mono text-xs"
+                value={outputSchema}
+                onChange={(e) => setOutputSchema(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enforced via constrained structured outputs. Leave empty for free-form text.
+              </p>
             </div>
           </div>
           <DialogFooter>
