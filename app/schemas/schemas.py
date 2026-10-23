@@ -4,10 +4,17 @@ from uuid import UUID
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+_SCHEMA_KEYWORDS = {"type", "properties", "$ref", "anyOf", "oneOf", "allOf", "enum", "const", "items"}
+
 def _validate_output_schema(schema: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """Empty means unconstrained; anything else must be a valid JSON Schema."""
     if not schema:
         return None
+    if not _SCHEMA_KEYWORDS.intersection(schema):
+        raise ValueError(
+            "This looks like an example output, not a JSON Schema. Describe it with keywords such as "
+            '"type": "object" and "properties": {...}.'
+        )
     try:
         jsonschema.Draft202012Validator.check_schema(schema)
     except jsonschema.SchemaError as e:
