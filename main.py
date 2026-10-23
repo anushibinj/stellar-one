@@ -1,7 +1,11 @@
 import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from app.api.endpoints import router as api_router
+from app.db.session import engine
+from app.models.models import Base
 
 # Configure logging
 logging.basicConfig(
@@ -9,7 +13,17 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Ensure the pgvector extension and all tables exist (no-op if already present)
+    async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Stellar-One Semantic Generation Engine",
     description="A semantic uniqueness generation engine using FastAPI, pgvector, and LangGraph.",
     version="1.0.0",
