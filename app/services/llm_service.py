@@ -14,8 +14,9 @@ class LLMService:
         base_url = os.getenv("OPENAI_BASE_URL") or None  # empty string -> default OpenAI endpoint
         # Self-hosted OpenAI-compatible servers (e.g. Ollama) need no key, but the client requires a non-empty one.
         api_key = os.getenv("OPENAI_API_KEY") or ("not-needed" if base_url else None)
+        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")  # fallback if not set
         self.llm = ChatOpenAI(
-            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),  # fallback if not set
+            model=self.model,
             base_url=base_url,
             api_key=api_key,
             timeout=settings.OLLAMA_TIMEOUT,
