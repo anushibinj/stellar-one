@@ -34,6 +34,9 @@ The system follows a strict LangGraph-driven workflow for every generation reque
   /schemas      # Pydantic validation schemas
   /services     # LLM, Embedding, and Similarity logic
 /scripts        # Database initialization
+Dockerfile      # Image for the Python app
+docker-compose.yml  # App + database services
+.env.example    # Sample environment configuration
 main.py         # Application entry point
 ```
 
@@ -41,7 +44,7 @@ main.py         # Application entry point
 
 ### 1. Prerequisites
 *   [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
-*   Python 3.12+
+*   Python 3.12+ and [uv](https://docs.astral.sh/uv/) (only for running locally without Docker)
 *   [Ollama](https://ollama.com/) installed locally.
 *   OpenAI API Key (for LLM).
 
@@ -52,40 +55,35 @@ ollama pull nomic-embed-text
 ```
 Ensure Ollama is running (typically on `http://localhost:11434`).
 
-### 3. Start the Database
-Use Docker Compose to start the PostgreSQL instance with pgvector:
+### 3. Environment Configuration
+Copy the sample file and fill in your values (`.env` is git-ignored):
 ```bash
-docker compose up -d
+cp .env.example .env
 ```
+At minimum set `OPENAI_API_KEY`. Every variable in `.env` is injected into the Python app, both when run locally and when run via Docker Compose.
 
-### 4. Environment Configuration
-Create a `.env` file in the root directory:
-```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/stellar_one
-OPENAI_API_KEY=sk-...
-OLLAMA_BASE_URL=http://localhost:11434
-EMBEDDING_MODEL=nomic-embed-text
-MAX_RETRIES=5
-SIMILARITY_THRESHOLD=0.30
-```
+### 4. Run with Docker Compose (app + database)
+`docker-compose.yml` defines two services:
+*   `db`: PostgreSQL with pgvector (port `5432`).
+*   `app`: the FastAPI backend, built from the `Dockerfile` (port `8000`). It waits for `db` to be healthy and loads your root `.env` file (optional).
 
-### 5. Install Dependencies
 ```bash
+docker compose up -d --build
+docker compose exec app python scripts/init_db.py   # first run only
+```
+Inside the container, `DATABASE_URL` is automatically pointed at the `db` service, and `OLLAMA_BASE_URL` defaults to `http://host.docker.internal:11434` (your host's Ollama). To use a different Ollama address from Docker, set `DOCKER_OLLAMA_BASE_URL` in `.env`. Other values from `.env` (e.g. `OPENAI_API_KEY`, `MAX_RETRIES`) pass through unchanged.
+
+The API is then available at [http://localhost:8000/docs](http://localhost:8000/docs).
+
+### 5. Alternative: Run Locally
+Start only the database, then run the app on your machine:
+```bash
+docker compose up -d db
 uv sync
-```
-
-### 6. Initialize Database
-*Note: If you already had the database initialized with 1536-dimension vectors, you will need to reset the tables to use the new 768-dimension vectors.*
-
-To initialize or reset the database:
-```bash
-uv run scripts/reset_db.py
-```
-
-### 7. Run the Application
-```bash
+uv run scripts/reset_db.py   # initialize or reset the database
 uv run uvicorn main:app --reload
 ```
+*Note: If you already had the database initialized with 1536-dimension vectors, you will need to reset the tables (`reset_db.py`) to use the new 768-dimension vectors.*
 
 ## 📡 API Endpoints
 
