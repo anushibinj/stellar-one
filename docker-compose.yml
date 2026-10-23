@@ -26,14 +26,10 @@ services:
     container_name: stellar_one_frontend
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
-    # Custom props from a root-level .env file (optional). Vite exposes only VITE_* ones to the app.
+    # Custom props from a root-level .env file (optional). Only VITE_* ones are written to /env.js for the app.
     env_file:
       - path: .env
         required: false
-    volumes:
-      # Mount the source for hot reload, but keep the container's own node_modules.
-      - ./frontend:/frontend
-      - /frontend/node_modules
     depends_on:
       - app
 
