@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 from datetime import datetime
 from typing import List, Optional
@@ -6,6 +6,10 @@ from typing import List, Optional
 class TemplateCreate(BaseModel):
     name: str
     system_prompt: str
+
+class TemplateUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    system_prompt: str = Field(min_length=1)
 
 class TemplateRead(BaseModel):
     id: UUID

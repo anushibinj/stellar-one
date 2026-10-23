@@ -6,7 +6,7 @@ import uuid
 
 from app.db.session import get_db
 from app.models.models import Template, Item
-from app.schemas.schemas import TemplateCreate, TemplateRead, GenerationResponse, ItemRead
+from app.schemas.schemas import TemplateCreate, TemplateUpdate, TemplateRead, GenerationResponse, ItemRead
 from app.graph.stellar_graph import stellar_graph
 from app.config import settings
 
@@ -26,7 +26,7 @@ async def list_templates(db: AsyncSession = Depends(get_db)):
     return result.scalars().all()
 
 @router.put("/templates/{template_id}", response_model=TemplateRead, summary="Update a template", description="Update the name and system prompt of an existing template.")
-async def update_template(template_id: uuid.UUID, data: TemplateCreate, db: AsyncSession = Depends(get_db)):
+async def update_template(template_id: uuid.UUID, data: TemplateUpdate, db: AsyncSession = Depends(get_db)):
     template = await db.get(Template, template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
