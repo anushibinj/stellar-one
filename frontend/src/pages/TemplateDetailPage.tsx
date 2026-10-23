@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Sparkles, History as HistoryIcon, Info } from 'lucide-react';
+import { ChevronLeft, Sparkles, History as HistoryIcon, Info, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { getTemplate, generateItem, getTemplateHistory } from '../services/templates';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import {
 import GeneratedResultCard from '../components/GeneratedResultCard';
 import SimilarityList from '../components/SimilarityList';
 import HistoryList from '../components/HistoryList';
+import EditTemplateModal from '../components/EditTemplateModal';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 
@@ -21,6 +22,7 @@ export default function TemplateDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isPromptOpen, setIsPromptOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   
   const { generationLoading, setGenerationLoading, setGenerationResult } = useStore();
 
@@ -96,11 +98,21 @@ export default function TemplateDetailPage() {
             <span className="text-xs text-muted-foreground">Created {new Date(template.created_at).toLocaleDateString()}</span>
           </div>
         </div>
+        <div className="flex w-full md:w-auto gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setIsEditOpen(true)}
+          className="shadow-sm"
+        >
+          <Pencil className="mr-2 h-3 w-3" />
+          <span className="text-xs">Edit</span>
+        </Button>
         <Button 
           size="sm" 
           onClick={() => generateMutation.mutate()} 
           disabled={generationLoading}
-          className="w-full md:w-auto shadow-sm shadow-primary/20"
+          className="flex-1 md:flex-none shadow-sm shadow-primary/20"
         >
           {generationLoading ? (
             <span className="flex items-center text-xs">
@@ -114,7 +126,21 @@ export default function TemplateDetailPage() {
             </span>
           )}
         </Button>
+        </div>
       </div>
+
+      {isEditOpen && (
+        <EditTemplateModal
+          template={template}
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          onSuccess={() => {
+            setIsEditOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['template', id] });
+            queryClient.invalidateQueries({ queryKey: ['templates'] });
+          }}
+        />
+      )}
 
       <Collapsible
         open={isPromptOpen}
