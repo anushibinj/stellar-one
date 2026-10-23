@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class GraphState(TypedDict):
     template_id: uuid.UUID
     system_prompt: str
+    output_schema: Optional[Dict[str, Any]]
     candidate_content: Optional[str]
     candidate_embedding: Optional[List[float]]
     similar_items: List[Dict[str, Any]]
@@ -38,7 +39,7 @@ Generate something completely different:
 * Different wording
 * Different punchline or idea"""
 
-    content = await llm_service.generate_text(state['system_prompt'], user_prompt)
+    content = await llm_service.generate_text(state['system_prompt'], user_prompt, state.get('output_schema'))
     return {"candidate_content": content, "attempts": state['attempts'] + 1}
 
 async def embed_candidate(state: GraphState):
