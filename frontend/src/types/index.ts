@@ -11,12 +11,20 @@ export interface SimilarItem {
   score: number;
 }
 
+export interface TokenUsage {
+  chat?: Record<string, number>;
+  embedding?: Record<string, number>;
+  total_tokens: number;
+  attempts: unknown[];
+}
+
 export interface GeneratedItemResponse {
   content: string;
   chat_model: string;
   embedding_model: string;
   attempts: number;
   similar_items: SimilarItem[];
+  token_usage: TokenUsage | null; // null = NA
 }
 
 export interface HistoryItem {
@@ -25,6 +33,7 @@ export interface HistoryItem {
   content: string;
   chat_model: string | null;
   embedding_model: string | null;
+  token_usage: TokenUsage | null; // null = NA
   created_at: string;
 }
 
