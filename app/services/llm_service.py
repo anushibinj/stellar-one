@@ -1,9 +1,10 @@
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from app.config import settings
+from app.services.token_usage import chat_usage_from_message
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -23,6 +24,11 @@ class LLMService:
         )
 
     async def generate_text(self, system_prompt: str, user_prompt: str, output_schema: Optional[Dict[str, Any]] = None) -> str:
+        content, _ = await self.generate_text_with_usage(system_prompt, user_prompt, output_schema)
+        return content
+
+    async def generate_text_with_usage(self, system_prompt: str, user_prompt: str, output_schema: Optional[Dict[str, Any]] = None) -> Tuple[str, Optional[Dict[str, int]]]:
+        """Returns (content, token_usage). token_usage is None when the provider reported none."""
         logger.info("Starting LLM generation")
         messages = [
             SystemMessage(content=system_prompt),
@@ -37,6 +43,6 @@ class LLMService:
             })
         response = await llm.ainvoke(messages)
         logger.info("LLM generation completed")
-        return response.content
+        return response.content, chat_usage_from_message(response)
 
 llm_service = LLMService()
