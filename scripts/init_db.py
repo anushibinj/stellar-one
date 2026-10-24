@@ -19,6 +19,7 @@ async def init_db():
         await conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS output_schema JSONB"))
         await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS chat_model VARCHAR(255)"))
         await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(255)"))
+        await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS token_usage JSONB"))
         print("Database initialized successfully.")
 
 if __name__ == "__main__":
