@@ -23,6 +23,7 @@ async def lifespan(_: FastAPI):
         await conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS output_schema JSONB"))
         await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS chat_model VARCHAR(255)"))
         await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS embedding_model VARCHAR(255)"))
+        await conn.execute(text("ALTER TABLE items ADD COLUMN IF NOT EXISTS token_usage JSONB"))
     yield
 
 
