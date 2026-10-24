@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, text
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 import uuid
@@ -54,6 +54,9 @@ async def delete_template(template_id: uuid.UUID, db: AsyncSession = Depends(get
 
 async def _generate_and_store(template: Template, db: AsyncSession):
     """Run the generation workflow for a template and persist the accepted item."""
+    # Serialize generation per template (lock released on commit/rollback): concurrent requests would
+    # otherwise run the similarity check before either has stored its item and both accept near-duplicates.
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:tid, 0))"), {"tid": str(template.id)})
     initial_state = {
         "template_id": template.id,
         "system_prompt": template.system_prompt,
