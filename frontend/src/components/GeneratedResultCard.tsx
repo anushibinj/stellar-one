@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Terminal, Copy, Check, Code } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import TokenUsageBadge from './TokenUsageBadge';
 
 export default function GeneratedResultCard() {
   const { generationResult, generationLoading } = useStore();
@@ -83,6 +84,9 @@ export default function GeneratedResultCard() {
               "{generationResult.content}"
             </blockquote>
             <div className="absolute -left-4 top-0 w-0.5 h-full bg-primary rounded-full opacity-50" />
+          </div>
+          <div className="mt-3">
+            <TokenUsageBadge usage={generationResult.token_usage} />
           </div>
         </CardContent>
       </Card>
