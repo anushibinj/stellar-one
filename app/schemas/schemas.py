@@ -54,6 +54,7 @@ class GenerationResponse(BaseModel):
     embedding_model: str
     attempts: int
     similar_items: List[SimilarItem]
+    token_usage: Optional[Dict[str, Any]] = None  # None = NA
 
 class ItemRead(BaseModel):
     id: UUID
@@ -61,6 +62,7 @@ class ItemRead(BaseModel):
     content: str
     chat_model: Optional[str] = None
     embedding_model: Optional[str] = None
+    token_usage: Optional[Dict[str, Any]] = None  # None = NA
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
