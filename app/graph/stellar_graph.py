@@ -19,6 +19,8 @@ class GraphState(TypedDict):
     candidate_embedding: Optional[List[float]]
     similar_items: List[Dict[str, Any]]
     attempts: int
+    usage_log: List[Dict[str, Any]]
+    token_usage: Optional[Dict[str, Any]]
     max_retries: int
     threshold: float
     accepted: bool
@@ -39,13 +41,18 @@ Generate something completely different:
 * Different wording
 * Different punchline or idea"""
 
-    content = await llm_service.generate_text(state['system_prompt'], user_prompt, state.get('output_schema'))
-    return {"candidate_content": content, "attempts": state['attempts'] + 1}
+    content, usage = await llm_service.generate_text_with_usage(state['system_prompt'], user_prompt, state.get('output_schema'))
+    # A new attempt entry; the embed node fills in its embedding usage. Usage tracking must never fail generation.
+    usage_log = list(state.get('usage_log') or []) + [{"attempt": state['attempts'] + 1, "chat": usage, "embedding": None}]
+    return {"candidate_content": content, "attempts": state['attempts'] + 1, "usage_log": usage_log}
 
 async def embed_candidate(state: GraphState):
     logger.info("Embedding candidate")
-    embedding = await embedding_service.embed_text(state['candidate_content'])
-    return {"candidate_embedding": embedding}
+    embedding, usage = await embedding_service.embed_text_with_usage(state['candidate_content'])
+    usage_log = [dict(a) for a in (state.get('usage_log') or [])]
+    if usage_log:
+        usage_log[-1]["embedding"] = usage
+    return {"candidate_embedding": embedding, "usage_log": usage_log}
 
 async def similarity_search(state: GraphState):
     logger.info("Performing similarity search")
