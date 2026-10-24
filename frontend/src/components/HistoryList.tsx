@@ -19,6 +19,7 @@ import {
 import CopyButton from './CopyButton';
 import ContentView from './ContentView';
 import ModelBadges from './ModelBadges';
+import TokenUsageBadge from './TokenUsageBadge';
 
 const PAGE_SIZE = 5;
 
@@ -113,6 +114,7 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
                     "{item.content}"
                   </p>
                   <ModelBadges chat_model={item.chat_model} embedding_model={item.embedding_model} />
+                  <TokenUsageBadge usage={item.token_usage} />
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <CopyButton text={item.content} />
@@ -161,7 +163,10 @@ export default function HistoryList({ templateId, history, isLoading }: HistoryL
             </DialogDescription>
           </DialogHeader>
           {selected && (
-            <ModelBadges chat_model={selected.chat_model} embedding_model={selected.embedding_model} />
+            <div className="space-y-0.5">
+              <ModelBadges chat_model={selected.chat_model} embedding_model={selected.embedding_model} />
+              <TokenUsageBadge usage={selected.token_usage} />
+            </div>
           )}
           {selected && <ContentView content={selected.content} />}
           <DialogFooter>
