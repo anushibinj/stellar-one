@@ -7,6 +7,7 @@ import uuid
 
 from app.db.session import get_db
 from app.models.models import Template, Item, ServedItem
+from app.services.token_usage import summarize_usage
 from app.schemas.schemas import TemplateCreate, TemplateUpdate, TemplateRead, GenerationResponse, ItemRead, RandomItemRequest, RandomItemResponse
 from app.graph.stellar_graph import stellar_graph
 from app.services.llm_service import llm_service
@@ -61,6 +62,8 @@ async def _generate_and_store(template: Template, db: AsyncSession):
         "candidate_embedding": None,
         "similar_items": [],
         "attempts": 0,
+        "usage_log": [],
+        "token_usage": None,
         "max_retries": settings.MAX_RETRIES,
         "threshold": settings.SIMILARITY_THRESHOLD,
         "accepted": False,
@@ -69,12 +72,14 @@ async def _generate_and_store(template: Template, db: AsyncSession):
 
     final_state = await stellar_graph.ainvoke(initial_state)
 
+    token_usage = summarize_usage(final_state.get("usage_log") or [])  # None -> NA
     new_item = Item(
         template_id=template.id,
         content=final_state["candidate_content"],
         embedding=final_state["candidate_embedding"],
         chat_model=llm_service.model,
-        embedding_model=embedding_service.model
+        embedding_model=embedding_service.model,
+        token_usage=token_usage
     )
     db.add(new_item)
     await db.commit()
@@ -94,7 +99,8 @@ async def generate_item(template_id: uuid.UUID, db: AsyncSession = Depends(get_d
         "chat_model": new_item.chat_model,
         "embedding_model": new_item.embedding_model,
         "attempts": final_state["attempts"],
-        "similar_items": final_state["similar_items"]
+        "similar_items": final_state["similar_items"],
+        "token_usage": new_item.token_usage
     }
 
 @router.post("/templates/{template_id}/randomItem", response_model=RandomItemResponse, summary="Get a random item", description="Return a random existing item for the template. With a randomKey, items are never repeated for that key until every existing item has been served, after which new items are generated. Without a randomKey, a random existing item is returned statelessly (generating one if the template has none).")
