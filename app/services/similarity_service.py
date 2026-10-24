@@ -17,9 +17,9 @@ class SimilarityService:
     ) -> List[Dict[str, Any]]:
         logger.info(f"Searching for similar items for template {template_id}")
         
-        # Using cosine distance operator <-> for pgvector
+        # <=> is pgvector's cosine distance (<-> is L2, which the 0.30 cosine threshold is not calibrated for)
         query = text("""
-            SELECT content, embedding <-> :embedding AS distance
+            SELECT content, embedding <=> :embedding AS distance
             FROM items
             WHERE template_id = :template_id
             ORDER BY distance ASC

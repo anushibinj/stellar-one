@@ -18,7 +18,7 @@ The system follows a strict LangGraph-driven workflow for every generation reque
 
 1.  **Generate Candidate:** The LLM generates a response based on the template's system prompt.
 2.  **Embed Candidate:** The response is converted into a 768-dimension vector using Ollama.
-3.  **Similarity Search:** The system performs a cosine distance search (`<->`) in PostgreSQL to find the top 3 most similar items.
+3.  **Similarity Search:** The system performs a cosine distance search (`<=>`) in PostgreSQL to find the top 3 most similar items.
 4.  **Decision Node:**
     *   If **Distance > Threshold (0.30)**: The item is accepted and stored.
     *   If **Distance < Threshold**: The item is rejected. The system retries by providing the LLM with the conflicting content and asking for something "completely different."
