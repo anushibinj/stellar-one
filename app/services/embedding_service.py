@@ -1,7 +1,8 @@
 import logging
 import httpx
-from typing import List
+from typing import Dict, List, Optional, Tuple
 from app.config import settings
+from app.services.token_usage import embedding_usage_from_response
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,11 @@ class EmbeddingService:
         self.headers = {"Authorization": f"Bearer {settings.EMBEDDING_API_KEY}"} if settings.EMBEDDING_API_KEY else {}
 
     async def embed_text(self, text: str) -> List[float]:
+        embedding, _ = await self.embed_text_with_usage(text)
+        return embedding
+
+    async def embed_text_with_usage(self, text: str) -> Tuple[List[float], Optional[Dict[str, int]]]:
+        """Returns (embedding, token_usage). token_usage is None when the endpoint reported none (e.g. Ollama native API)."""
         logger.info(f"Starting embedding generation with model: {self.model} at {self.base_url}")
 
         if self.openai_style:
@@ -37,7 +43,7 @@ class EmbeddingService:
                     raise ValueError("Response from embedding endpoint does not contain an embedding")
 
                 logger.info("Embedding generation completed")
-                return embedding
+                return embedding, embedding_usage_from_response(data)
                 
         except httpx.ConnectError:
             logger.error(f"Failed to connect to Ollama at {self.base_url}. Is it running?")
